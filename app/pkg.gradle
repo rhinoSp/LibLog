@@ -9,7 +9,7 @@ ext.signKeyPass = '123456'
 /**
  * 输出APK文件信息
  */
-ext.apkFilePrefix = 'DD'
+ext.apkFilePrefix = 'app'
 ext.apkVersionName = '1.0'
 ext.apkVersionCode = 1
 ext.apkOutPutDir = "${rootDir}/outPutApk"
