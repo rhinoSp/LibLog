@@ -1,5 +1,5 @@
 # LibLog
-The library of log for developing quickly.
+The library of log.
 
 # How to
 To get a Git project into your build:
