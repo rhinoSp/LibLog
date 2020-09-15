@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         LogUtils.e(TAG, "xxxxxxxxx");
         LogUtils.e(TAG, "xxxxxxxxx", null);
 
+
     }
 
     @Override

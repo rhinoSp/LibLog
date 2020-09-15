@@ -1,6 +1,7 @@
 package com.rhino.log.crash;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -45,7 +46,6 @@ public class CrashHandlerUtils implements UncaughtExceptionHandler {
      * The log tag.
      */
     private static final String TAG = CrashHandlerUtils.class.getSimpleName();
-
     /**
      * The default handler of UncaughtException.
      */
@@ -58,12 +58,19 @@ public class CrashHandlerUtils implements UncaughtExceptionHandler {
      * The ICrashHandler.
      */
     private DefaultCrashHandler mICrashHandler;
-
-    private static CrashHandlerUtils instance;
     /**
      * The prefix of log msg.
      */
     private String mPrefixOfLogMsg = "";
+    /**
+     * SharedPreferences
+     */
+    private SharedPreferences mSharedPreferences;
+
+    /**
+     * CrashHandlerUtils
+     */
+    private static CrashHandlerUtils instance;
 
     public static CrashHandlerUtils getInstance() {
         if (instance == null) {
@@ -79,12 +86,21 @@ public class CrashHandlerUtils implements UncaughtExceptionHandler {
         this.mContext = context.getApplicationContext();
         this.mICrashHandler = crashHandler;
         this.mPrefixOfLogMsg = context.getPackageName();
+        this.mSharedPreferences = mContext.getSharedPreferences("share_preferences_log", Context.MODE_PRIVATE);
+        if (crashAlways()) {
+            // crash always
+            log("init():crash always, do not init, deal by system");
+            return;
+        }
         // get the default handler of UncaughtException
         mDefaultHandler = Thread.getDefaultUncaughtExceptionHandler();
         // set this CrashHandlerUtils to the default handler of UncaughtException
         Thread.setDefaultUncaughtExceptionHandler(this);
     }
 
+    /**
+     * Set prefix of log msg
+     */
     public void setPrefixOfLogMsg(String prefix) {
         mPrefixOfLogMsg = prefix;
     }
@@ -116,8 +132,17 @@ public class CrashHandlerUtils implements UncaughtExceptionHandler {
         // save error information to file
         String debugText = saveCrashInfo2File(ex);
         if (!TextUtils.isEmpty(debugText)) {
+            log("handleException():crash always flag: " + crashAlways());
             Toast.makeText(mContext, "程序发生异常，即将退出！", Toast.LENGTH_LONG).show();
-            CrashService.startThisService(mContext, mICrashHandler, debugText);
+            if (!crashAlways()) {
+                log("handleException():start service for error activity");
+                saveLastCrashTimestamp(System.currentTimeMillis());
+                CrashService.startThisService(mContext, mICrashHandler, debugText);
+            } else {
+                log("handleException():kill current process");
+                saveLastCrashTimestamp(System.currentTimeMillis());
+                killCurrentProcess();
+            }
             return true;
         } else {
             log(ex == null ? "Throwable is null" : ex.toString());
@@ -297,6 +322,31 @@ public class CrashHandlerUtils implements UncaughtExceptionHandler {
     public static void killCurrentProcess() {
         android.os.Process.killProcess(android.os.Process.myPid());
         System.exit(10);
+    }
+
+    /**
+     * crash always
+     */
+    private boolean crashAlways() {
+        return getLastCrashTimestamp() + 3000 > System.currentTimeMillis();
+    }
+
+    /**
+     * save last crash time
+     */
+    public void saveLastCrashTimestamp(long value) {
+        SharedPreferences.Editor edit = mSharedPreferences.edit();
+        if (edit != null) {
+            edit.putLong("lastCrashTimestamp", value);
+            edit.commit();
+        }
+    }
+
+    /**
+     * get last crash time
+     */
+    public long getLastCrashTimestamp() {
+        return mSharedPreferences.getLong("lastCrashTimestamp", 0L);
     }
 
 
