@@ -9,8 +9,8 @@
 ext.aarOutPutDir = "${rootDir}/repositories"
 ext.aarPackageName = "com.rhino.log"
 ext.aarArtifactId = "libLog"
-ext.aarVersionName = "1.4"
-ext.aarVersionCode = 5
+ext.aarVersionName = "1.9"
+ext.aarVersionCode = 1
 
 afterEvaluate {
     project.tasks.findAll {

@@ -53,6 +53,6 @@ dependencies {
     api rootProject.ext.dependencies["appcompat-v7"]
 
     implementation project(':libLog')
-//    implementation(name: 'com.rhino.log-libLog-v1.4.1', ext: 'aar')
+//    implementation 'com.github.rhinoSp:LibLog:v1.4.5'
 
 }
