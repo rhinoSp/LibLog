@@ -83,6 +83,14 @@ public class LogUtils {
      * The FileOutputStream for write log.
      */
     private static FileOutputStream mFileOutputStream = null;
+    /**
+     * 当前文件已写入日志行数
+     */
+    private static int writeLineCount = 0;
+    /**
+     * 单个文件最大写入日志行数
+     */
+    private static int fileMaxLineCount = 10000;
 
     public static void init(Context context, boolean debug, boolean writeFile) {
         mLogEnableFlag = debug ? LOG_FLAG_ALL : LOG_FLAG_NONE;
@@ -180,16 +188,16 @@ public class LogUtils {
     }
 
     private static void log(String level, String tag, String text, Exception e) {
-        if ("d" .equals(level)) {
+        if ("d".equals(level)) {
             android.util.Log.d(tag, text);
             checkWriteLogToFile(text, (mWriteLogEnableFlag & LOG_FLAG_DEBUG) == LOG_FLAG_DEBUG);
-        } else if ("i" .equals(level)) {
+        } else if ("i".equals(level)) {
             android.util.Log.i(tag, text);
             checkWriteLogToFile(text, (mWriteLogEnableFlag & LOG_FLAG_INFO) == LOG_FLAG_INFO);
-        } else if ("w" .equals(level)) {
+        } else if ("w".equals(level)) {
             android.util.Log.w(tag, text);
             checkWriteLogToFile(text, (mWriteLogEnableFlag & LOG_FLAG_WARM) == LOG_FLAG_WARM);
-        } else if ("e" .equals(level)) {
+        } else if ("e".equals(level)) {
             android.util.Log.e(tag, text, e);
             checkWriteLogToFile(text, (mWriteLogEnableFlag & LOG_FLAG_ERROR) == LOG_FLAG_ERROR);
         }
@@ -217,7 +225,8 @@ public class LogUtils {
 
     private static void writeLog2File(String text) {
         try {
-            if (null == mFileOutputStream) {
+            if (null == mFileOutputStream || writeLineCount >= fileMaxLineCount) {
+                writeLineCount = 0;
                 mDateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault());
                 String prefix = mPrefixOfLogFileName;
                 if (TextUtils.isEmpty(prefix)) {
@@ -249,6 +258,7 @@ public class LogUtils {
             String log = mDateFormat.format(new Date()) + ":(" + TAG + ")" + " >> " + text + "\n";
             mFileOutputStream.write(log.getBytes());
             mFileOutputStream.flush();
+            writeLineCount++;
         } catch (Exception e) {
             android.util.Log.e(TAG, "Write error: " + e.toString());
         }
