@@ -3,8 +3,9 @@ package com.rhino.log.crash;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.rhino.log.LogUtils;
 
@@ -34,6 +35,10 @@ public class DefaultCrashHandler implements Serializable {
     public String getDebugFileName() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault());
         return "log_crash_" + sdf.format(new Date(System.currentTimeMillis())) + ".txt";
+    }
+
+    public void onCrashCaught(Context context, @Nullable String debugFilePath, @Nullable String debugText) {
+        CrashService.startThisService(context, this, debugFilePath, debugText);
     }
 
     public void onCrashServerCreate() {

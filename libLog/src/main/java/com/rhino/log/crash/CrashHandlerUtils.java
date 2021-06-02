@@ -7,11 +7,12 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.rhino.log.R;
 
@@ -130,14 +131,14 @@ public class CrashHandlerUtils implements UncaughtExceptionHandler {
      */
     private boolean handleException(Throwable ex) {
         // save error information to file
-        String debugText = saveCrashInfo2File(ex);
+        String filePath = getFilePath();
+        String debugText = saveCrashInfo2File(filePath, ex);
         if (!TextUtils.isEmpty(debugText)) {
             log("handleException():crash always flag: " + crashAlways());
-            Toast.makeText(mContext, "程序发生异常，即将退出！", Toast.LENGTH_LONG).show();
             if (!crashAlways()) {
                 log("handleException():start service for error activity");
                 saveLastCrashTimestamp(System.currentTimeMillis());
-                CrashService.startThisService(mContext, mICrashHandler, debugText);
+                mICrashHandler.onCrashCaught(mContext, filePath, debugText);
             } else {
                 log("handleException():kill current process");
                 saveLastCrashTimestamp(System.currentTimeMillis());
@@ -157,21 +158,20 @@ public class CrashHandlerUtils implements UncaughtExceptionHandler {
      * @return the debug text
      */
     @Nullable
-    private String saveCrashInfo2File(Throwable ex) {
+    private String saveCrashInfo2File(String filePath, Throwable ex) {
         if (ex == null) {
+            log("ex is null");
             return null;
         }
-        StringBuilder sb = new StringBuilder();
-        DateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss",
-                Locale.getDefault());
-        sb.append("DATE=").append(sdf.format(new Date(System.currentTimeMillis()))).append("\n");
-
-        String filePath = getFilePath();
         if (TextUtils.isEmpty(filePath)) {
             log("File path is null");
             return null;
         }
         log("filePath = " + filePath);
+        StringBuilder sb = new StringBuilder();
+        DateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss",
+                Locale.getDefault());
+        sb.append("DATE=").append(sdf.format(new Date(System.currentTimeMillis()))).append("\n");
         sb.append("FILE_PATH=").append(filePath).append("\n");
 
         ApplicationInfo info = mContext.getApplicationInfo();

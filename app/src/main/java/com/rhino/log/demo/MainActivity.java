@@ -1,14 +1,13 @@
 package com.rhino.log.demo;
 
 import android.Manifest;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import com.rhino.log.LogUtils;
-import com.rhino.log.crash.CrashHandlerUtils;
-import com.rhino.log.crash.DefaultCrashHandler;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -24,8 +23,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        LogUtils.init(this, true, true);
-        CrashHandlerUtils.getInstance().init(this, new DefaultCrashHandler());
 
         ActivityCompat.requestPermissions(this, PERMISSIONS, 11);
 
@@ -45,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        int i = 1/0;
+        int i = 1 / 0;
     }
 
     @Override

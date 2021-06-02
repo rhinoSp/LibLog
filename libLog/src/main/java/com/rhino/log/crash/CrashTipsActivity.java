@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,6 +16,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.rhino.log.R;
 
 
@@ -25,8 +28,18 @@ import com.rhino.log.R;
 public final class CrashTipsActivity extends Activity implements View.OnClickListener {
 
     private DefaultCrashHandler mICrashHandler;
+    private String mFilePath;
     private String mDebugText;
     private Class<?> mRestartActivity;
+
+    public static void startThis(Context context, @NonNull DefaultCrashHandler crashHandler, String filePath, String debugText) {
+        Intent intent = new Intent(context, CrashTipsActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra(CrashService.KEY_CRASH_HANDLE, crashHandler);
+        intent.putExtra(CrashService.KEY_DEBUG_FILE_PATH, filePath);
+        intent.putExtra(CrashService.KEY_DEBUG_TEXT, debugText);
+        context.startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,14 +47,15 @@ public final class CrashTipsActivity extends Activity implements View.OnClickLis
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        mICrashHandler = (DefaultCrashHandler)getIntent().getSerializableExtra(CrashService.KEY_CRASH_HANDLE);
+        mICrashHandler = (DefaultCrashHandler) getIntent().getSerializableExtra(CrashService.KEY_CRASH_HANDLE);
+        mFilePath = getIntent().getStringExtra(CrashService.KEY_DEBUG_FILE_PATH);
         mDebugText = getIntent().getStringExtra(CrashService.KEY_DEBUG_TEXT);
         setContentView(R.layout.activity_crash_tips);
         findViewById(R.id.error_activity_restart_button).setOnClickListener(this);
         findViewById(R.id.error_activity_more_info_button).setOnClickListener(this);
         mRestartActivity = mICrashHandler.getRestartActivity();
         if (mRestartActivity == null) {
-            ((Button)findViewById(R.id.error_activity_restart_button)).setText("关闭程序");
+            ((Button) findViewById(R.id.error_activity_restart_button)).setText("关闭程序");
         }
     }
 
@@ -70,7 +84,7 @@ public final class CrashTipsActivity extends Activity implements View.OnClickLis
                     })
                     .show();
             TextView textView = dialog.findViewById(android.R.id.message);
-            textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
         }
     }
 
