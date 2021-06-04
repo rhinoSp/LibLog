@@ -19,7 +19,7 @@ public class CrashHandler extends DefaultCrashHandler {
     }
 
     @Override
-    public void onCrashCaught(Context context, @Nullable @org.jetbrains.annotations.Nullable String debugFilePath, @Nullable @org.jetbrains.annotations.Nullable String debugText) {
+    public void onCrashCaught(Context context, @Nullable String debugFilePath, @Nullable String debugText) {
         CrashTipsActivity.startThis(context, this, debugFilePath, debugText);
     }
 
