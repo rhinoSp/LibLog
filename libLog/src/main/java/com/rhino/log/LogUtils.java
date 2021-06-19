@@ -3,7 +3,6 @@ package com.rhino.log;
 import android.content.Context;
 import android.os.Environment;
 import android.text.TextUtils;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,7 +24,8 @@ import java.util.Locale;
  **/
 public class LogUtils {
 
-    private static final String TAG = "LogUtils";
+    public static final String TAG = "LogUtils";
+    public static final int LOG_MAX_COUNT = 3000;
 
     /**
      * None log enable
@@ -134,60 +134,76 @@ public class LogUtils {
 
     public static void d(String msg) {
         if ((mLogEnableFlag & LOG_FLAG_DEBUG) == LOG_FLAG_DEBUG)
-            log("d", TAG, buildMessage(msg), null);
+            preLog("d", TAG, buildPrefix(), msg, null);
     }
 
     public static void d(String tag, String msg) {
         if ((mLogEnableFlag & LOG_FLAG_DEBUG) == LOG_FLAG_DEBUG)
-            log("d", tag, buildMessage(msg), null);
+            preLog("d", tag, buildPrefix(), msg, null);
     }
 
     public static void i(String msg) {
         if ((mLogEnableFlag & LOG_FLAG_INFO) == LOG_FLAG_INFO)
-            log("i", TAG, buildMessage(msg), null);
+            preLog("i", TAG, buildPrefix(), msg, null);
     }
 
     public static void i(String tag, String msg) {
         if ((mLogEnableFlag & LOG_FLAG_INFO) == LOG_FLAG_INFO)
-            log("i", tag, buildMessage(msg), null);
+            preLog("i", tag, buildPrefix(), msg, null);
     }
 
     public static void w(String msg) {
         if ((mLogEnableFlag & LOG_FLAG_WARM) == LOG_FLAG_WARM)
-            log("w", TAG, buildMessage(msg), null);
+            preLog("w", TAG, buildPrefix(), msg, null);
     }
 
     public static void w(String tag, String msg) {
         if ((mLogEnableFlag & LOG_FLAG_WARM) == LOG_FLAG_WARM)
-            log("w", tag, buildMessage(msg), null);
+            preLog("w", tag, buildPrefix(), msg, null);
     }
 
     public static void e(String msg) {
         if ((mLogEnableFlag & LOG_FLAG_ERROR) == LOG_FLAG_ERROR)
-            log("e", TAG, buildMessage(msg), null);
+            preLog("e", TAG, buildPrefix(), msg, null);
     }
 
     public static void e(Exception e) {
         if ((mLogEnableFlag & LOG_FLAG_ERROR) == LOG_FLAG_ERROR)
-            log("e", TAG, buildMessage(e != null ? e.toString() : "Exception is null"), e);
+            preLog("e", TAG, buildPrefix(), e != null ? e.toString() : "Exception is null", e);
     }
 
     public static void e(String msg, Exception e) {
         if ((mLogEnableFlag & LOG_FLAG_ERROR) == LOG_FLAG_ERROR)
-            log("e", TAG, buildMessage(msg + ":" + (e != null ? e.toString() : "Exception is null")), e);
+            preLog("e", TAG, buildPrefix(), msg + ":" + (e != null ? e.toString() : "Exception is null"), e);
     }
 
     public static void e(String tag, String msg) {
         if ((mLogEnableFlag & LOG_FLAG_ERROR) == LOG_FLAG_ERROR)
-            log("e", tag, buildMessage(msg), null);
+            preLog("e", tag, buildPrefix(), msg, null);
     }
 
     public static void e(String tag, String msg, Exception e) {
         if ((mLogEnableFlag & LOG_FLAG_ERROR) == LOG_FLAG_ERROR)
-            log("e", tag, buildMessage(msg + ":" + (e != null ? e.toString() : "Exception is null")), e);
+            preLog("e", tag, buildPrefix(), msg + ":" + (e != null ? e.toString() : "Exception is null"), e);
     }
 
-    private static void log(String level, String tag, String text, Exception e) {
+    private static void preLog(String level, String tag, String prefix, String msg, Exception e) {
+        if (msg.length() > LOG_MAX_COUNT) {
+            int i = 1;
+            while (msg.length() > LOG_MAX_COUNT) {
+                log(level, tag, prefix, String.format("LINE[%d]:%s", i++, msg.substring(0, LOG_MAX_COUNT)), e);
+                msg = msg.substring(LOG_MAX_COUNT);
+            }
+            if (!TextUtils.isEmpty(msg)) {
+                log(level, tag, prefix, String.format("LINE[%d]:%s", i, msg), e);
+            }
+        } else {
+            log(level, tag, prefix, msg, e);
+        }
+    }
+
+    private static void log(String level, String tag, String prefix, String msg, Exception e) {
+        String text = prefix + msg;
         if ("d".equals(level)) {
             android.util.Log.d(tag, text);
             checkWriteLogToFile(text, (mWriteLogEnableFlag & LOG_FLAG_DEBUG) == LOG_FLAG_DEBUG);
@@ -203,7 +219,7 @@ public class LogUtils {
         }
     }
 
-    private static String buildMessage(String msg) {
+    private static String buildPrefix() {
         StackTraceElement caller = Thread.currentThread().getStackTrace()[4];
         StringBuilder text = new StringBuilder();
         text.append(mPrefixOfLogMsg)
@@ -214,8 +230,7 @@ public class LogUtils {
                 .append(caller.getMethodName())
                 .append("[")
                 .append(caller.getLineNumber())
-                .append("]:")
-                .append(msg);
+                .append("]:");
         return text.toString();
     }
 

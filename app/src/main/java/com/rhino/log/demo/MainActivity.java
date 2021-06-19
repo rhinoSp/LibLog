@@ -26,6 +26,11 @@ public class MainActivity extends AppCompatActivity {
 
         ActivityCompat.requestPermissions(this, PERMISSIONS, 11);
 
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < 3000; i++) {
+            sb.append("x" + i);
+        }
+        LogUtils.e(sb.toString());
         LogUtils.d("xxxxxxxxx");
         LogUtils.d(TAG, "xxxxxxxxx");
         LogUtils.i("xxxxxxxxx");
